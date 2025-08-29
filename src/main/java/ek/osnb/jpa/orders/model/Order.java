@@ -1,18 +1,24 @@
 package ek.osnb.jpa.orders.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ek.osnb.jpa.common.model.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table (name = "orders")
 public class Order extends BaseEntity {
 
+    @JsonManagedReference
+    @OneToMany(mappedBy = "order")
+    private List<OrderLine> orderLines = new ArrayList<>();
+
     private LocalDate orderDate;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     public Order() {}
@@ -20,6 +26,22 @@ public class Order extends BaseEntity {
     public Order(LocalDate orderDate, OrderStatus status) {
         this.orderDate = orderDate;
         this.status = status;
+    }
+
+    public void addOrderLine(OrderLine orderLine) {
+        orderLines.add(orderLine);
+        orderLine.setOrder(this);
+    }
+
+    public void removeOrderLine(OrderLine orderLine) {
+        orderLines.remove(orderLine);
+        orderLine.setOrder(null);
+    }
+
+    public void clearOrderLines() {
+        for (OrderLine orderLine : new ArrayList<>(orderLines)) {
+            removeOrderLine(orderLine);
+        }
     }
 
     public LocalDate getOrderDate() {
@@ -37,4 +59,10 @@ public class Order extends BaseEntity {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
+
+    public List<OrderLine> getOrderLines() {
+        return orderLines;
+    }
+
+
 }
