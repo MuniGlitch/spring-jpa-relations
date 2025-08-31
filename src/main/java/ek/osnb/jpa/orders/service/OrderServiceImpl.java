@@ -7,6 +7,7 @@ import ek.osnb.jpa.orders.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -25,7 +26,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order getOrderById(Long id) {
-        return null;
+        return getOrderById(id);
     }
 
     @Override
@@ -35,7 +36,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order updateOrder(Long id, Order order) {
-        return null;
+        Optional<Order> existingOrder = orderRepository.findById(id);
+        if (existingOrder.isPresent()) {
+            Order updatedOrder = existingOrder.get();
+            updatedOrder.setOrderDate(order.getOrderDate());
+            updatedOrder.setStatus(order.getStatus());
+
+            updatedOrder.clearOrderLines();
+            for (var line : order.getOrderLines()) {
+                updatedOrder.addOrderLine(line);
+            }
+            return orderRepository.save(updatedOrder);
+        }
+        throw new RuntimeException("Order not found with id: " + id);
     }
 
     @Override
